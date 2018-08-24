@@ -60,10 +60,15 @@ public class Main {
         List<String> dictionary = initializeDictionary();
 
         int previousIndex = input.get(0);
-        output.append(dictionary.get(previousIndex));
+        String previousValue = dictionary.get(previousIndex);
+        output.append(previousValue);
 
         for (int currentIndex : input.subList(1, input.size())) {
-            String currentValue = dictionary.get(currentIndex);
+            String currentValue;
+            if (currentIndex == dictionary.size())
+                currentValue = previousValue + previousValue.charAt(0);
+            else
+                currentValue = dictionary.get(currentIndex);
             output.append(currentValue);
             char firstCharOfCurrentValue = currentValue.charAt(0);
             dictionary.add(dictionary.get(previousIndex) + firstCharOfCurrentValue);
