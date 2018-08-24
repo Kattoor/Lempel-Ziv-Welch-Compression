@@ -1,3 +1,4 @@
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class Main {
                         "This is a lossless data compression algorithm created by Abraham Lempel, Jacob Ziv, and Terry Welch.\n" +
                         "It was published by Welch in 1984 as an improved implementation of the LZ78 algorithm published by Lempel and Ziv in 1978.\n" +
                         "- Wikipedia";
-        List<Integer> compressed = compress(toCompress);
+        ArrayDeque<Integer> compressed = compress(toCompress);
         String decompressed = decompress(compressed);
         System.out.println(decompressed);
         System.out.printf("\nThe original text consists of %d bytes, of which %d remain after compression.\n", decompressed.getBytes().length, compressed.size());
@@ -27,8 +28,8 @@ public class Main {
         return dictionary;
     }
 
-    private List<Integer> compress(String input) {
-        final List<Integer> output = new ArrayList<>();
+    private ArrayDeque<Integer> compress(String input) {
+        final ArrayDeque<Integer> output = new ArrayDeque<>();
 
         List<String> dictionary = initializeDictionary();
 
@@ -41,7 +42,7 @@ public class Main {
                 previous.append(current);
             else {
                 int key = dictionary.indexOf(previous.toString());
-                output.add(key);
+                output.offerLast(key);
                 dictionary.add(previous.toString() + current);
                 previous.delete(0, previous.length());
                 previous.append(current);
@@ -49,21 +50,22 @@ public class Main {
         }
 
         int key = dictionary.indexOf(previous.toString());
-        output.add(key);
+        output.offerLast(key);
 
         return output;
     }
 
-    private String decompress(List<Integer> input) {
+    private String decompress(ArrayDeque<Integer> input) {
         StringBuilder output = new StringBuilder();
 
         List<String> dictionary = initializeDictionary();
 
-        int previousIndex = input.get(0);
+        int previousIndex = input.pollFirst();
         String previousValue = dictionary.get(previousIndex);
         output.append(previousValue);
 
-        for (int currentIndex : input.subList(1, input.size())) {
+        Integer currentIndex;
+        while ((currentIndex = input.pollFirst()) != null) {
             String currentValue;
             if (currentIndex == dictionary.size())
                 currentValue = previousValue + previousValue.charAt(0);
