@@ -1,4 +1,3 @@
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,11 +9,15 @@ public class Main {
 
     private Main() {
         String toCompress =
-                "Hello, my name is Jasper and I'm trying to implement the Lempel Ziv Welch compression / decompression algorithm.\n" +
-                        "This is a lossless data compression algorithm created by Abraham Lempel, Jacob Ziv, and Terry Welch.\n" +
-                        "It was published by Welch in 1984 as an improved implementation of the LZ78 algorithm published by Lempel and Ziv in 1978.\n" +
-                        "- Wikipedia";
-        ArrayDeque<Integer> compressed = compress(toCompress);
+                "Let's suppose that you were able every night to dream any dream you wanted to dream, \n" +
+                        "and you would naturally as you began on this adventure of dreams, you would fulfill all your wishes.\n" +
+                        "You would have every kind of pleasure, you see, and after several nights you would say, \"well that was pretty great.\"\n" +
+                        "But now let's have a surprise, let's have a dream which isn't under control.\n" +
+                        "Well something is going to happen to me that I don't know what it's gonna be.\n" +
+                        "Then you would get more and more adventurous, and you would make further and further out gambles as to what you would dream, \n" +
+                        "and finally you would dream where you are now.\n" +
+                        "- Alan Watts";
+        List<Integer> compressed = compress(toCompress);
         String decompressed = decompress(compressed);
         System.out.println(decompressed);
         System.out.printf("\nThe original text consists of %d bytes, of which %d remain after compression.\n", decompressed.getBytes().length, compressed.size());
@@ -28,8 +31,8 @@ public class Main {
         return dictionary;
     }
 
-    private ArrayDeque<Integer> compress(String input) {
-        final ArrayDeque<Integer> output = new ArrayDeque<>();
+    private List<Integer> compress(String input) {
+        final List<Integer> output = new ArrayList<>();
 
         List<String> dictionary = initializeDictionary();
 
@@ -42,7 +45,7 @@ public class Main {
                 previous.append(current);
             else {
                 int key = dictionary.indexOf(previous.toString());
-                output.offerLast(key);
+                output.add(key);
                 dictionary.add(previous.toString() + current);
                 previous.delete(0, previous.length());
                 previous.append(current);
@@ -50,22 +53,22 @@ public class Main {
         }
 
         int key = dictionary.indexOf(previous.toString());
-        output.offerLast(key);
+        output.add(key);
 
         return output;
     }
 
-    private String decompress(ArrayDeque<Integer> input) {
+    private String decompress(List<Integer> input) {
         StringBuilder output = new StringBuilder();
 
         List<String> dictionary = initializeDictionary();
 
-        int previousIndex = input.pollFirst();
+        int previousIndex = input.get(0);
         String previousValue = dictionary.get(previousIndex);
         output.append(previousValue);
 
-        Integer currentIndex;
-        while ((currentIndex = input.pollFirst()) != null) {
+        for (int i = 1; i < input.size(); i++) {
+            int currentIndex = input.get(i);
             String currentValue;
             if (currentIndex == dictionary.size())
                 currentValue = previousValue + previousValue.charAt(0);
