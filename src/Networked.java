@@ -1,15 +1,20 @@
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Main {
+public class Networked {
 
-    public static void main(String[] args) {
-        new Main();
+    public static void main(String[] args) throws IOException {
+        new Networked();
     }
 
-    private Main() {
-        String toCompress =
+    private Networked() throws IOException {
+
+        new Thread(new LZWServer()).start();
+
+
+        /*String toCompress =
                 "kwkwk";
         ArrayDeque<Integer> compressed = compress(toCompress);
         int compressedLength = compressed.size();
@@ -17,7 +22,7 @@ public class Main {
         int decompressedLength = decompressed.getBytes().length;
         System.out.println(decompressed);
         System.out.printf("\nThe original text consists of %d bytes, of which %d remain after compression.\n", decompressedLength, compressedLength);
-        System.out.printf("This is a reduction of approximately %.2f%%.\n", (1 - compressedLength / (float) decompressedLength) * 100);
+        System.out.printf("This is a reduction of approximately %.2f%%.\n", (1 - compressedLength / (float) decompressedLength) * 100);*/
     }
 
     private List<String> initializeDictionary() {
