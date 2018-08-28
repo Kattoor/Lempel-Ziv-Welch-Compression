@@ -23,7 +23,7 @@ for (...) {
 		bytes.add(secondByteValue);
 	}
 	if (amountOfBitsToWriteInThirdByte > 0) {
-		thirdByteValue = ...
+		thirdByteValue = (indexToWriteArray >> (amountOfBitsToWriteInFirstByte + amountOfBitsToWriteInSecondByte));
 		bytes.add(thirdByteValue);
 	}
 }

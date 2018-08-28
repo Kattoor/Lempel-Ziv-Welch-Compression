@@ -11,12 +11,13 @@ public class Main {
 
     private Main() {
         String toCompress =
-                "abfjeiwqjfpqwicjfpewqinfpwqioejfpi jqwfepijweqfpi jqwepfijqwcpfinqwpeoi jqwpigjqpwioefjpqoiwenfi pixjfpiejfqwiefn wqiengpqwiefjpdisjfiq nfqwiofjwqief nvwqeifnqwpeoig jwqiofjweipqjfio2j309j23[9t j23i 2]3jr]23] ifjweifjqwegin wqeipfjjcnwepoifj pweiqjfpqiowgjpqowifejpoidsfjpiojwqefikij32095u1-68235-i1^123420357231" +
-                        "Hello, my name is Jasper and I'm trying to implement the Lempel Ziv Welch compression / decompression algorithm.\n" +
+                "Hello, my name is Jasper and I'm trying to implement the Lempel Ziv Welch compression / decompression algorithm.\n" +
                         "This is a lossless data compression algorithm created by Abraham Lempel, Jacob Ziv, and Terry Welch.\n" +
                         "It was published by Welch in 1984 as an improved implementation of the LZ78 algorithm published by Lempel and Ziv in 1978.\n" +
                         "- Wikipedia";
         List<Byte> compressed = compress(toCompress);
+        System.out.println(compressed.size());
+        System.out.println(toCompress.getBytes().length);
         //String decompressed = decompress(compressed);
         //System.out.println(decompressed);
         //System.out.printf("\nThe original text consists of %d bytes, of which %d remain after compression.\n", decompressed.getBytes().length, compressed.size());
@@ -33,26 +34,30 @@ public class Main {
     class BitsToWrite {
         private int amountOfBits;
         private int value;
+
         public BitsToWrite(int amountOfBits, int value) {
             this.amountOfBits = amountOfBits;
             this.value = value;
         }
+
         public int getAmountOfBits() {
             return amountOfBits;
         }
+
         public void setAmountOfBits(int amountOfBits) {
             this.amountOfBits = amountOfBits;
         }
+
         public int getValue() {
             return value;
         }
+
         public void setValue(int value) {
             this.value = value;
         }
     }
 
     private List<Byte> compress(String input) {
-        final List<Byte> outputBytes = new ArrayList<>();
         int currentCodeSize = initialWidth + 1;
         final List<BitsToWrite> output = new ArrayList<>();
 
@@ -71,17 +76,54 @@ public class Main {
                 dictionary.add(previous.toString() + current);
                 previous.delete(0, previous.length());
                 previous.append(current);
-                if (dictionary.size() == Math.pow(2, currentCodeSize) - 1) {
+                if (dictionary.size() == Math.pow(2, currentCodeSize) - 1)
                     currentCodeSize++;
-                    System.out.println(dictionary.size());
-                }
             }
         }
 
         int key = dictionary.indexOf(previous.toString());
-        output.add(new BitsToWrite(initialWidth, key));
+        output.add(new BitsToWrite(currentCodeSize, key));
 
-        return outputBytes;
+
+        List<Byte> bytes = fillBytesArray(output);
+        return bytes;
+    }
+
+    private List<Byte> fillBytesArray(List<BitsToWrite> list) {
+        List<Byte> bytes = new ArrayList<>();
+        int bitOffset = 0;
+
+        for (BitsToWrite toWrite : list) {
+            int indexToWriteToByteArray = toWrite.getValue();
+            int amountOfBitsToWrite = toWrite.getAmountOfBits();
+
+            int firstByteIndex = bitOffset / 8;
+            if (bytes.size() == firstByteIndex)
+                bytes.add((byte) 0);
+            int firstByteValue = bytes.get(firstByteIndex);
+
+            int amountOfBitsToWriteInFirstByte = Math.min(8 - (bitOffset % 8), amountOfBitsToWrite);
+            amountOfBitsToWrite -= amountOfBitsToWriteInFirstByte;
+            int amountOfBitsToWriteInSecondByte = Math.min(8, amountOfBitsToWrite);
+            amountOfBitsToWrite -= amountOfBitsToWriteInSecondByte;
+            int amountOfBitsToWriteInThirdByte = Math.min(8, amountOfBitsToWrite);
+
+            byte a = (byte) (firstByteValue | ((indexToWriteToByteArray & ((int) Math.pow(2, amountOfBitsToWriteInFirstByte) - 1)) << (bitOffset % 8)));
+
+            bytes.set(firstByteIndex, a);
+            if (amountOfBitsToWriteInSecondByte > 0) {
+                byte secondByteValue = (byte) ((indexToWriteToByteArray >> amountOfBitsToWriteInFirstByte) & ((int) Math.pow(2, amountOfBitsToWriteInSecondByte) - 1));
+                bytes.add(secondByteValue);
+            }
+            if (amountOfBitsToWriteInThirdByte > 0) {
+                byte thirdByteValue = (byte) (indexToWriteToByteArray >> (amountOfBitsToWriteInFirstByte + amountOfBitsToWriteInSecondByte));
+                bytes.add(thirdByteValue);
+            }
+
+            bitOffset += toWrite.getAmountOfBits();
+        }
+
+        return bytes;
     }
 
     private String decompress(List<Integer> input) {
