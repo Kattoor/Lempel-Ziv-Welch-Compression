@@ -1,0 +1,29 @@
+for (...) {
+
+	List<Byte> bytes = new ArrayList();
+	int indexToWriteToByteArray = ...;
+	int amountOfBitsToWrite = ...;
+
+	int bitOffset = ...;
+	int firstByteIndex = bitOffset / 8;
+	int secondByteIndex = bitOffset / 8 + 1;
+	int thirdByteIndex = bitOffset / 8 + 2;
+	int firstByteValue = bytes.get(firstByteIndex), secondByteValue = 0, thirdByteValue = 0;
+
+	int amountOfBitsToWriteInFirstByte = Math.min(8 - (bitOffset % 8), amountOfBitsToWrite);
+	amountOfBitsToWrite -= amountOfBitsToWriteInFirstByte;
+	int amountOfBitsToWriteInSecondByte = Math.min(8, amountOfBitsToWrite);
+	amountOfBitsToWrite -= amountOfBitsToWriteInSecondByte;
+	int amountOfBitsToWriteInThirdByte = Math.min(8, amountOfBitsToWrite);
+
+	firstByteValue |= ((indexToWriteToByteArray & ((int) Math.pow(2, amountOfBitsToWriteInFirstByte) - 1)) << (bitOffset % 8))
+	bytes.set(firstByteIndex, firstByteValue);
+	if (amountOfBitsToWriteInSecondByte > 0) {
+		secondByteValue = (indexToWriteToByteArray >> amountOfBitsToWriteInFirstByte) & ((int) Math.pow(2, amountOfBitsToWriteInSecondByte) - 1);
+		bytes.add(secondByteValue);
+	}
+	if (amountOfBitsToWriteInThirdByte > 0) {
+		thirdByteValue = ...
+		bytes.add(thirdByteValue);
+	}
+}
