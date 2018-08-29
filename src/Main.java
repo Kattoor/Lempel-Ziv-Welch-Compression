@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -16,12 +17,15 @@ public class Main {
                         "It was published by Welch in 1984 as an improved implementation of the LZ78 algorithm published by Lempel and Ziv in 1978.\n" +
                         "- Wikipedia";
         List<Byte> compressed = compress(toCompress);
-        System.out.println(compressed.size());
-        System.out.println(toCompress.getBytes().length);
-        //String decompressed = decompress(compressed);
-        //System.out.println(decompressed);
-        //System.out.printf("\nThe original text consists of %d bytes, of which %d remain after compression.\n", decompressed.getBytes().length, compressed.size());
-        //System.out.printf("This is a reduction of approximately %.2f%%.\n", (1 - compressed.size() / (float) decompressed.getBytes().length) * 100);
+
+        List<Integer> compressedInts = new ArrayList<>();
+        for (byte b : compressed)
+            compressedInts.add(b & 0xFF);
+
+        String decompressed = decompress(compressedInts);
+        System.out.println(decompressed);
+        System.out.printf("\nThe original text consists of %d bytes, of which %d remain after compression.\n", decompressed.getBytes().length, compressed.size());
+        System.out.printf("This is a reduction of approximately %.2f%%.\n", (1 - compressed.size() / (float) decompressed.getBytes().length) * 100);
     }
 
     private List<String> initializeDictionary() {
@@ -86,13 +90,13 @@ public class Main {
 
 
         List<Byte> bytes = fillBytesArray(output);
+        List<Integer> collect = output.stream().map(BitsToWrite::getValue).collect(Collectors.toList());
         return bytes;
     }
 
     private List<Byte> fillBytesArray(List<BitsToWrite> list) {
         List<Byte> bytes = new ArrayList<>();
         int bitOffset = 0;
-
         for (BitsToWrite toWrite : list) {
             int indexToWriteToByteArray = toWrite.getValue();
             int amountOfBitsToWrite = toWrite.getAmountOfBits();
@@ -128,24 +132,31 @@ public class Main {
 
     private String decompress(List<Integer> input) {
         StringBuilder output = new StringBuilder();
+        int currentCodeSize = initialWidth + 1;
+        int bitOffset = 0;
 
         List<String> dictionary = initializeDictionary();
 
         int previousIndex = input.get(0);
         String previousValue = dictionary.get(previousIndex);
         output.append(previousValue);
+        bitOffset += currentCodeSize;
 
-        for (int currentIndex : input.subList(1, input.size())) {
+        do {
             String currentValue;
-            if (currentIndex == dictionary.size())
+            int code = readBits(input, bitOffset, currentCodeSize);
+            bitOffset += currentCodeSize;
+            if (code == dictionary.size())
                 currentValue = previousValue + previousValue.charAt(0);
             else
-                currentValue = dictionary.get(currentIndex);
+                currentValue = dictionary.get(code);
             output.append(currentValue);
             char firstCharOfCurrentValue = currentValue.charAt(0);
             dictionary.add(dictionary.get(previousIndex) + firstCharOfCurrentValue);
-            previousIndex = currentIndex;
-        }
+            if (dictionary.size() == Math.pow(2, currentCodeSize) - 2)
+                currentCodeSize++;
+            previousIndex = code;
+        } while (bitOffset / 8 != input.size());
 
         return output.toString();
     }
