@@ -9,14 +9,10 @@ public class Main {
 
     private Main() {
         String toCompress =
-                "Let's suppose that you were able every night to dream any dream you wanted to dream, \n" +
-                        "and you would naturally as you began on this adventure of dreams, you would fulfill all your wishes.\n" +
-                        "You would have every kind of pleasure, you see, and after several nights you would say, \"well that was pretty great.\"\n" +
-                        "But now let's have a surprise, let's have a dream which isn't under control.\n" +
-                        "Well something is going to happen to me that I don't know what it's gonna be.\n" +
-                        "Then you would get more and more adventurous, and you would make further and further out gambles as to what you would dream, \n" +
-                        "and finally you would dream where you are now.\n" +
-                        "- Alan Watts";
+                "Hello, my name is Jasper and I'm trying to implement the Lempel Ziv Welch compression / decompression algorithm.\n" +
+                        "This is a lossless data compression algorithm created by Abraham Lempel, Jacob Ziv, and Terry Welch.\n" +
+                        "It was published by Welch in 1984 as an improved implementation of the LZ78 algorithm published by Lempel and Ziv in 1978.\n" +
+                        "- Wikipedia";
         List<Integer> compressed = compress(toCompress);
         String decompressed = decompress(compressed);
         System.out.println(decompressed);
@@ -63,21 +59,18 @@ public class Main {
 
         List<String> dictionary = initializeDictionary();
 
-        int previousIndex = input.get(0);
-        String previousValue = dictionary.get(previousIndex);
+        String previousValue = dictionary.get(input.get(0));
         output.append(previousValue);
 
-        for (int i = 1; i < input.size(); i++) {
-            int currentIndex = input.get(i);
-            String currentValue;
-            if (currentIndex == dictionary.size())
-                currentValue = previousValue + previousValue.charAt(0);
-            else
-                currentValue = dictionary.get(currentIndex);
+        for (int currentIndex : input.subList(1, input.size())) {
+            String currentValue = currentIndex == dictionary.size() ?
+                    previousValue + previousValue.charAt(0) :
+                    dictionary.get(currentIndex);
+
             output.append(currentValue);
-            char firstCharOfCurrentValue = currentValue.charAt(0);
-            dictionary.add(dictionary.get(previousIndex) + firstCharOfCurrentValue);
-            previousIndex = currentIndex;
+            dictionary.add(previousValue + currentValue.charAt(0));
+
+            previousValue = currentValue;
         }
 
         return output.toString();
